@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La cocina de Emilia - Pedidos Online</title>
+  <style>
+    :root {
+      --primary: #d9381e;
+      --primary-dark: #b02a14;
+      --whatsapp: #25D366;
+      --whatsapp-dark: #1ebe5d;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
+
+    /* Cabecera y Selector de Idioma */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    .lang-switch { display: flex; gap: 6px; }
+    .lang-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid transparent;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .lang-btn.active { background: white; border-color: #fbbf24; }
+
+    .container { max-width: 600px; margin: 16px auto; padding: 0 14px; position: relative; z-index: 1; }
+
+    /* Tarjetas con transparencia */
+    .card {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .card h2 { margin-top: 0; font-size: 1.05rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; margin-top: 12px; }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+    }
+
+    /* Ingredientes y Opciones Radio */
+    .ing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .ing-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(249, 250, 251, 0.85);
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      margin-top: 0;
+    }
+    .ing-item input { width: 17px; height: 17px; accent-color: var(--primary); }
+    .price-tag { color: var(--primary); font-weight: 700; font-size: 0.8rem; margin-left: auto; }
+
+    .bag-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 14px;
+    }
+    .bag-box > label { margin-top: 0; color: #92400e; }
+
+    .match-badge {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Botones */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-whatsapp { background: var(--whatsapp); color: #064e3b; font-size: 1.05rem; }
+    .btn-whatsapp:hover:not(:disabled) { background: var(--whatsapp-dark); }
+    .btn-whatsapp:disabled {
+      background: #d1d5db;
+      color: #6b7280;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+    .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: var(--text); font-size: 0.88rem; padding: 8px; margin-top: 8px; }
+    .btn-danger-outline { background: transparent; border: 1px solid #fca5a5; color: #b91c1c; font-size: 0.88rem; padding: 8px; margin-top: 8px; }
+
+    /* Cesta */
+    .cart-item {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-title { font-weight: 700; font-size: 0.95rem; }
+    .cart-sub { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+    .cart-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      background: #e5e7eb;
+      border: none;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .del-btn {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .total-box {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 2px solid var(--text);
+    }
+
+    .req-hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .hidden { display: none; }
+
+    /* Fondo animado de comida */
+    .food-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .food-bg span {
+      position: absolute;
+      bottom: -60px;
+      font-size: 2rem;
+      opacity: 0.35;
+      user-select: none;
+      animation: floatFood linear infinite;
+    }
+    @keyframes floatFood {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-115vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="food-bg" id="food-bg"></div>
+
+<header>
+  <h1 id="ui-title">🍔 La cocina de Emilia</h1>
+  <div class="lang-switch">
+    <button class="lang-btn active" id="btn-es" onclick="setLang('es')" title="Español">🇪🇸</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')" title="English">🇬🇧</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- BLOQUE 1: SELECTOR DE CARTA -->
+  <div class="card">
+    <h2 id="ui-menu-header">1. Elige tu comida</h2>
+
+    <label for="cat-select" id="ui-lbl-cat">Categoría:</label>
+    <select id="cat-select" onchange="onCategoryChange()"></select>
+
+    <label for="item-select" id="ui-lbl-item">Opción / Número:</label>
+    <select id="item-select" onchange="onItemChange()"></select>
+
+    <div id="match-alert" class="match-badge"></div>
+
+    <div id="customizer-box" class="hidden">
+      <label id="ui-lbl-base-ing">Ingredientes incluidos (desmarca para quitar):</label>
+      <div id="base-ing-list" class="ing-grid"></div>
+
+      <label id="ui-lbl-extra-ing">Añadir ingredientes extra:</label>
+      <div id="extra-ing-list" class="ing-grid"></div>
+
+      <label id="ui-lbl-sauces">Salsas (gratis):</label>
+      <div id="sauce-list" class="ing-grid"></div>
+    </div>
+
+    <button class="btn btn-primary" id="ui-btn-add" onclick="addToCart()">+ Añadir a la cesta (0,00 €)</button>
+  </div>
+
+  <!-- BLOQUE 2: CESTA DE LA COMPRA -->
+  <div class="card">
+    <h2 id="ui-cart-header">2. Tu cesta</h2>
+    <div id="cart-list"></div>
+    <div class="total-box">
+      <span id="ui-total-lbl">TOTAL:</span>
+      <span id="cart-total">0,00 €</span>
+    </div>
+  </div>
+
+  <!-- BLOQUE 3: DATOS Y ENVÍO A WHATSAPP -->
+  <div class="card">
+    <h2 id="ui-send-header">3. Confirmar pedido</h2>
+    <div>
+      <label for="cust-name" id="ui-lbl-name">Tu nombre (obligatorio):</label>
+      <input type="text" id="cust-name" placeholder="Ej: Carlos" oninput="validateForm()">
+    </div>
+
+    <div class="bag-box">
+      <label id="ui-lbl-bag">🛍️ ¿Necesitas bolsa para llevar? (obligatorio):</label>
+      <div class="ing-grid">
+        <label class="ing-item">
+          <input type="radio" name="bag-opt" value="yes" onchange="onBagChange()">
+          <span id="ui-bag-yes">Sí</span>
+          <span class="price-tag">+0,15 €</span>
+        </label>
+        <label class="ing-item">
+          <input type="radio" name="bag-opt" value="no" onchange="onBagChange()">
+          <span id="ui-bag-no">No</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="edit-mode-banner" class="match-badge" style="background:#fef3c7; color:#92400e; border-color:#f59e0b;"></div>
+
+    <button class="btn btn-whatsapp" id="ui-btn-send" onclick="sendOrder()" disabled>📲 Enviar pedido por WhatsApp</button>
+    <div class="req-hint" id="ui-req-hint"></div>
+
+    <div class="secondary-actions">
+      <button class="btn btn-outline" id="ui-btn-modify" onclick="loadLastOrderForEdit()">🔄 Modificar último pedido</button>
+      <button class="btn btn-danger-outline" id="ui-btn-cancel" onclick="cancelLastOrder()">❌ Cancelar pedido</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ==========================================
+  // 1. CONFIGURACIÓN DEL BAR
+  // ==========================================
+  const TELEFONO_BAR = "346000000";
+  const PRECIO_BOLSA = 0.15;
+  const SAUCES_DATA = [
+    { id: "ketchup", name: { es: "Ketchup", en: "Ketchup" } },
+    { id: "mayonesa", name: { es: "Mayonesa", en: "Mayonnaise" } }
+  ];
+
+  // ==========================================
+  // 2. CARTA COMPLETA (Con soporte simple: true para Bebidas)
+  // ==========================================
+  const MENU_DATA = {
+    hamburguesas: {
+      name: { es: "🍔 Hamburguesas", en: "🍔 Burgers" },
+      customBasePrice: 3.50,
+      ingredients: [
+        { id: "hamburguesa", name: { es: "Hamburguesa", en: "Burger patty" }, extraPrice: 1.50 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.20 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.20 },
+        { id: "cebolla", name: { es: "Cebolla", en: "Onion" }, extraPrice: 0.20 },
+        { id: "york", name: { es: "York", en: "Ham" }, extraPrice: 0.60 },
+        { id: "beicon", name: { es: "Beicon", en: "Bacon" }, extraPrice: 0.60 }
+      ],
+      items: [
+        { num: "11", name: { es: "Pan, Hamburguesa", en: "Burger" }, price: 3.50, ings: ["hamburguesa"] },
+        { num: "12", name: { es: "Hamburguesa, Huevo", en: "Burger with egg" }, price: 4.10, ings: ["hamburguesa", "huevo"] },
+        { num: "13", name: { es: "Hamburguesa, Queso", en: "Cheeseburger" }, price: 4.10, ings: ["hamburguesa", "queso"] },
+        { num: "14", name: { es: "Hamburguesa, Lechuga, Tomate, Cebolla", en: "Burger with lettuce, tomato and onion" }, price: 4.10, ings: ["hamburguesa", "lechuga", "tomate", "cebolla"] },
+        { num: "15", name: { es: "Hamburguesa, Lechuga, Tomate, Cebolla, Huevo", en: "Burger with lettuce, tomato, onion and egg" }, price: 4.40, ings: ["hamburguesa", "lechuga", "tomate", "cebolla", "huevo"] },
+        { num: "16", name: { es: "Hamburguesa, Lechuga, Tomate, Cebolla, Queso", en: "Burger with lettuce, tomato, onion and cheese" }, price: 4.40, ings: ["hamburguesa", "lechuga", "tomate", "cebolla", "queso"] },
+        { num: "17", name: { es: "Hamburguesa, Lechuga, Tomate, Cebolla, Huevo, Queso", en: "Burger with lettuce, tomato, onion, egg and cheese" }, price: 4.80, ings: ["hamburguesa", "lechuga", "tomate", "cebolla", "huevo", "queso"] },
+        { num: "18", name: { es: "Especial Churre (Hamburguesa, Lechuga, Tomate, Cebolla, Huevo, Queso, York, Beicon)", en: "Churre Special (Burger with lettuce, tomato, onion, egg, cheese, ham and bacon)" }, price: 5.40, ings: ["hamburguesa", "lechuga", "tomate", "cebolla", "huevo", "queso", "york", "beicon"] }
+      ]
+    },
+
+    lomos: {
+      name: { es: "🥖 Lomos", en: "🥖 Pork Loin Rolls" },
+      customBasePrice: 4.10,
+      ingredients: [
+        { id: "lomo", name: { es: "Lomo", en: "Pork loin" }, extraPrice: 1.50 },
+        { id: "pollo_cambio", name: { es: "Cambio Lomo por Pechuga de Pollo", en: "Chicken breast instead of pork loin" }, extraPrice: 0.80 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.20 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.20 },
+        { id: "cebolla", name: { es: "Cebolla", en: "Onion" }, extraPrice: 0.20 },
+        { id: "york", name: { es: "York", en: "Ham" }, extraPrice: 0.60 },
+        { id: "beicon", name: { es: "Beicon", en: "Bacon" }, extraPrice: 0.60 }
+      ],
+      items: [
+        { num: "21", name: { es: "Pan, Lomo", en: "Pork loin" }, price: 4.10, ings: ["lomo"] },
+        { num: "22", name: { es: "Lomo, Huevo", en: "Pork loin with egg" }, price: 4.40, ings: ["lomo", "huevo"] },
+        { num: "23", name: { es: "Lomo, Queso", en: "Pork loin with cheese" }, price: 4.40, ings: ["lomo", "queso"] },
+        { num: "24", name: { es: "Lomo, Lechuga, Tomate, Cebolla", en: "Pork loin with lettuce, tomato and onion" }, price: 4.40, ings: ["lomo", "lechuga", "tomate", "cebolla"] },
+        { num: "25", name: { es: "Lomo, Lechuga, Tomate, Cebolla, Huevo", en: "Pork loin with lettuce, tomato, onion and egg" }, price: 4.80, ings: ["lomo", "lechuga", "tomate", "cebolla", "huevo"] },
+        { num: "26", name: { es: "Lomo, Lechuga, Tomate, Cebolla, Queso", en: "Pork loin with lettuce, tomato, onion and cheese" }, price: 4.80, ings: ["lomo", "lechuga", "tomate", "cebolla", "queso"] },
+        { num: "27", name: { es: "Lomo, Lechuga, Tomate, Cebolla, Huevo, Queso", en: "Pork loin with lettuce, tomato, onion, egg and cheese" }, price: 5.10, ings: ["lomo", "lechuga", "tomate", "cebolla", "huevo", "queso"] },
+        { num: "28", name: { es: "Especial Churre (Lomo, Lechuga, Tomate, Cebolla, Huevo, Queso, York, Beicon)", en: "Churre Special (Pork loin with lettuce, tomato, onion, egg, cheese, ham and bacon)" }, price: 5.90, ings: ["lomo", "lechuga", "tomate", "cebolla", "huevo", "queso", "york", "beicon"] }
+      ]
+    },
+
+    sandwiches: {
+      name: { es: "🥪 Sandwiches", en: "🥪 Sandwiches" },
+      customBasePrice: 3.20,
+      ingredients: [
+        { id: "york", name: { es: "York", en: "Ham" }, extraPrice: 0.80 },
+        { id: "pollo_cambio", name: { es: "Cambio York por Pechuga de Pollo", en: "Chicken breast instead of ham" }, extraPrice: 1.50 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.30 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.30 },
+        { id: "esparragos", name: { es: "Espárragos", en: "Asparagus" }, extraPrice: 0.60 },
+        { id: "zanahoria", name: { es: "Zanahoria", en: "Carrots" }, extraPrice: 0.30 },
+        { id: "remolacha", name: { es: "Remolacha", en: "Beet" }, extraPrice: 0.30 }
+      ],
+      items: [
+        { num: "41", name: { es: "Pan, York, Queso", en: "Ham and cheese" }, price: 3.50, ings: ["york", "queso"] },
+        { num: "42", name: { es: "York, Queso, Huevo", en: "Ham, cheese and egg" }, price: 4.10, ings: ["york", "queso", "huevo"] },
+        { num: "43", name: { es: "York, Queso, Lechuga, Tomate", en: "Ham, cheese, lettuce and tomato" }, price: 4.00, ings: ["york", "queso", "lechuga", "tomate"] },
+        { num: "44", name: { es: "York, Queso, Lechuga, Tomate, Espárragos", en: "Ham, cheese, lettuce, tomato and asparagus" }, price: 4.20, ings: ["york", "queso", "lechuga", "tomate", "esparragos"] },
+        { num: "45", name: { es: "York, Queso, Huevo, Lechuga, Tomate, Espárragos", en: "Ham, cheese, egg, lettuce, tomato and asparagus" }, price: 4.70, ings: ["york", "queso", "huevo", "lechuga", "tomate", "esparragos"] },
+        { num: "46", name: { es: "Vegetal: Lechuga, Tomate, Espárragos, Zanahoria, Remolacha", en: "Vegetal: lettuce, tomato, asparagus, carrots and beet" }, price: 3.20, ings: ["lechuga", "tomate", "esparragos", "zanahoria", "remolacha"] },
+        { num: "47", name: { es: "York, Queso, Lechuga, Tomate, Espárragos, Zanahoria, Remolacha", en: "Ham, cheese, lettuce, tomato, asparagus, carrots and beet" }, price: 4.90, ings: ["york", "queso", "lechuga", "tomate", "esparragos", "zanahoria", "remolacha"] },
+        { num: "48", name: { es: "Especial Churre - Tres Rebanadas (York, Queso, Huevo, Lechuga, Tomate, Espárragos, Zanahoria, Remolacha)", en: "Churre Special - Three bread slices (Ham, cheese, egg, lettuce, tomato, asparagus, carrot and beet)" }, price: 5.10, ings: ["york", "queso", "huevo", "lechuga", "tomate", "esparragos", "zanahoria", "remolacha"] }
+      ]
+    },
+
+    beicon: {
+      name: { es: "🥓 Beicon", en: "🥓 Bacon Rolls" },
+      customBasePrice: 4.10,
+      ingredients: [
+        { id: "beicon", name: { es: "Beicon", en: "Bacon" }, extraPrice: 1.50 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.20 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.20 },
+        { id: "cebolla", name: { es: "Cebolla", en: "Onion" }, extraPrice: 0.20 },
+        { id: "york", name: { es: "York", en: "Ham" }, extraPrice: 0.60 }
+      ],
+      items: [
+        { num: "31", name: { es: "Pan, Beicon", en: "Bacon" }, price: 4.10, ings: ["beicon"] },
+        { num: "32", name: { es: "Beicon, Huevo", en: "Bacon with egg" }, price: 4.40, ings: ["beicon", "huevo"] },
+        { num: "33", name: { es: "Beicon, Queso", en: "Bacon with cheese" }, price: 4.40, ings: ["beicon", "queso"] },
+        { num: "34", name: { es: "Beicon, Lechuga, Tomate, Cebolla", en: "Bacon with lettuce, tomato and onion" }, price: 4.40, ings: ["beicon", "lechuga", "tomate", "cebolla"] },
+        { num: "35", name: { es: "Beicon, Lechuga, Tomate, Cebolla, Huevo", en: "Bacon with lettuce, tomato, onion and egg" }, price: 4.80, ings: ["beicon", "lechuga", "tomate", "cebolla", "huevo"] },
+        { num: "36", name: { es: "Beicon, Lechuga, Tomate, Cebolla, Queso", en: "Bacon with lettuce, tomato, onion and cheese" }, price: 4.80, ings: ["beicon", "lechuga", "tomate", "cebolla", "queso"] },
+        { num: "37", name: { es: "Beicon, Lechuga, Tomate, Cebolla, Huevo, Queso", en: "Bacon with lettuce, tomato, onion, egg and cheese" }, price: 5.10, ings: ["beicon", "lechuga", "tomate", "cebolla", "huevo", "queso"] },
+        { num: "38", name: { es: "Especial Churre (Beicon, Lechuga, Tomate, Cebolla, Huevo, Queso, York)", en: "Churre Special (Bacon with lettuce, tomato, onion, egg, cheese and ham)" }, price: 5.40, ings: ["beicon", "lechuga", "tomate", "cebolla", "huevo", "queso", "york"] }
+      ]
+    },
+
+    kebab: {
+      name: { es: "🥙 Kebab", en: "🥙 Kebab Meat" },
+      customBasePrice: 4.70,
+      ingredients: [
+        { id: "carne", name: { es: "Carne Kebab", en: "Kebab meat" }, extraPrice: 1.50 },
+        { id: "doble_carne", name: { es: "Doble de Carne", en: "Double portion of meat" }, extraPrice: 2.00 },
+        { id: "salsa", name: { es: "Salsa", en: "Sauce" }, extraPrice: 0.30 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.20 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.20 },
+        { id: "cebolla", name: { es: "Cebolla", en: "Onion" }, extraPrice: 0.20 },
+        { id: "zanahoria", name: { es: "Zanahoria", en: "Carrots" }, extraPrice: 0.30 },
+        { id: "remolacha", name: { es: "Remolacha", en: "Beet" }, extraPrice: 0.30 },
+        { id: "maiz", name: { es: "Maíz", en: "Sweet corn" }, extraPrice: 0.30 },
+        { id: "patatas", name: { es: "Patatas", en: "Chips" }, extraPrice: 0.80 }
+      ],
+      items: [
+        { num: "1", name: { es: "Carne, Salsa", en: "Meat and sauce" }, price: 4.70, ings: ["carne", "salsa"] },
+        { num: "2", name: { es: "Carne, Huevo, Salsa", en: "Meat, egg and sauce" }, price: 5.20, ings: ["carne", "huevo", "salsa"] },
+        { num: "3", name: { es: "Carne, Queso, Salsa", en: "Meat, cheese and sauce" }, price: 5.20, ings: ["carne", "queso", "salsa"] },
+        { num: "4", name: { es: "Carne, Lechuga, Tomate, Cebolla, Salsa", en: "Meat, lettuce, tomato, onion and sauce" }, price: 5.20, ings: ["carne", "lechuga", "tomate", "cebolla", "salsa"] },
+        { num: "5", name: { es: "Carne, Lechuga, Tomate, Cebolla, Huevo, Salsa", en: "Meat, lettuce, tomato, onion, egg and sauce" }, price: 5.60, ings: ["carne", "lechuga", "tomate", "cebolla", "huevo", "salsa"] },
+        { num: "6", name: { es: "Carne, Lechuga, Tomate, Cebolla, Queso, Salsa", en: "Meat, lettuce, tomato, onion, cheese and sauce" }, price: 5.60, ings: ["carne", "lechuga", "tomate", "cebolla", "queso", "salsa"] },
+        { num: "7", name: { es: "Carne, Lechuga, Tomate, Cebolla, Huevo, Queso, Salsa", en: "Meat, lettuce, tomato, onion, egg, cheese and sauce" }, price: 5.90, ings: ["carne", "lechuga", "tomate", "cebolla", "huevo", "queso", "salsa"] },
+        { num: "8", name: { es: "Especial Churre (Carne, Lechuga, Tomate, Cebolla, Zanahoria, Remolacha, Maíz, Huevo, Queso, Salsa)", en: "Churre Special (Meat, lettuce, tomato, onion, carrots, beet, sweet corn, egg, cheese and sauce)" }, price: 6.40, ings: ["carne", "lechuga", "tomate", "cebolla", "zanahoria", "remolacha", "maiz", "huevo", "queso", "salsa"] },
+        { num: "9", name: { es: "Plato Combinado (Carne, Lechuga, Tomate, Zanahoria, Remolacha, Maíz, Patatas, Salsa)", en: "Combination plate (Meat, lettuce, tomato, carrot, beet, sweet corn, chips and sauce)" }, price: 6.40, ings: ["carne", "lechuga", "tomate", "zanahoria", "remolacha", "maiz", "patatas", "salsa"] }
+      ]
+    },
+
+    ensaladas: {
+      name: { es: "🥗 Ensaladas", en: "🥗 Salads" },
+      customBasePrice: 4.50,
+      ingredients: [
+        { id: "lechuga", name: { es: "Lechuga", en: "Lettuce" }, extraPrice: 0.60 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.60 },
+        { id: "cebolla", name: { es: "Cebolla", en: "Onion" }, extraPrice: 0.60 },
+        { id: "aceitunas", name: { es: "Aceitunas", en: "Olives" }, extraPrice: 0.60 },
+        { id: "maiz", name: { es: "Maíz", en: "Sweet corn" }, extraPrice: 0.60 },
+        { id: "pina", name: { es: "Piña", en: "Pineapple" }, extraPrice: 0.60 },
+        { id: "pollo", name: { es: "Pollo", en: "Chicken" }, extraPrice: 1.50 },
+        { id: "queso_fresco", name: { es: "Queso Fresco", en: "Fresh cheese" }, extraPrice: 0.80 },
+        { id: "salsa_rosa", name: { es: "Salsa Rosa", en: "Cocktail sauce" }, extraPrice: 0.60 },
+        { id: "ajos_aceite", name: { es: "Ajos, Sal y Aceite de Oliva", en: "Garlic, salt and olive oil" }, extraPrice: 0.60 },
+        { id: "esparragos", name: { es: "Espárragos", en: "Asparagus" }, extraPrice: 0.80 },
+        { id: "zanahoria", name: { es: "Zanahoria", en: "Carrots" }, extraPrice: 0.60 },
+        { id: "remolacha", name: { es: "Remolacha", en: "Beet" }, extraPrice: 0.60 },
+        { id: "atun", name: { es: "Atún", en: "Tuna" }, extraPrice: 0.80 },
+        { id: "huevo", name: { es: "Huevo", en: "Egg" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.80 },
+        { id: "jamon_serrano", name: { es: "Jamón Serrano", en: "Cured ham" }, extraPrice: 1.50 }
+      ],
+      items: [
+        { num: "", name: { es: "Mixta (Lechuga, Tomate, Cebolla, Aceitunas)", en: "Mixed (Lettuce, tomato, onion and olives)" }, price: 5.00, ings: ["lechuga", "tomate", "cebolla", "aceitunas"] },
+        { num: "", name: { es: "Tropical (Lechuga, Maíz, Piña, Pollo, Queso Fresco, Salsa Rosa)", en: "Tropical (Lettuce, sweet corn, pineapple, chicken, fresh cheese and cocktail sauce)" }, price: 5.50, ings: ["lechuga", "maiz", "pina", "pollo", "queso_fresco", "salsa_rosa"] },
+        { num: "", name: { es: "Tomate Picado con Ajos", en: "Natural tomato dressed with garlic, salt and olive oil" }, price: 4.50, ings: ["tomate", "ajos_aceite"] },
+        { num: "", name: { es: "Especial Churre (Lechuga, Tomate, Cebolla, Espárragos, Zanahoria, Remolacha, Maíz, Piña, Aceitunas, Atún, Huevo, Queso, Jamón Serrano)", en: "Churre Special (Lettuce, tomato, onion, asparagus, carrots, beet, sweet corn, pineapple, olives, tuna, egg, cheese and cured ham)" }, price: 7.00, ings: ["lechuga", "tomate", "cebolla", "esparragos", "zanahoria", "remolacha", "maiz", "pina", "aceitunas", "atun", "huevo", "queso", "jamon_serrano"] }
+      ]
+    },
+
+    tortillas: {
+      name: { es: "🍳 Tortillas", en: "🍳 Omelettes" },
+      customBasePrice: 3.60,
+      ingredients: [
+        { id: "huevo", name: { es: "Huevo (Base Francesa)", en: "Egg (Plain Omelette base)" }, extraPrice: 0.60 },
+        { id: "patata", name: { es: "Patata", en: "Potato" }, extraPrice: 0.80 },
+        { id: "gambas", name: { es: "Gambas", en: "Prawn" }, extraPrice: 1.50 },
+        { id: "atun", name: { es: "Atún", en: "Tuna" }, extraPrice: 0.80 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.80 },
+        { id: "jamon_serrano", name: { es: "Jamón Serrano", en: "Cured ham" }, extraPrice: 0.80 },
+        { id: "jamon_york", name: { es: "Jamón York", en: "Ham" }, extraPrice: 0.80 }
+      ],
+      items: [
+        { num: "", name: { es: "Española", en: "Spanish potato omelette" }, price: 4.70, ings: ["huevo", "patata"] },
+        { num: "", name: { es: "Francesa", en: "Omelette" }, price: 3.60, ings: ["huevo"] },
+        { num: "", name: { es: "Gambas", en: "Prawn" }, price: 6.00, ings: ["huevo", "gambas"] },
+        { num: "", name: { es: "Atún", en: "Tuna" }, price: 4.80, ings: ["huevo", "atun"] },
+        { num: "", name: { es: "Queso", en: "Cheese" }, price: 4.80, ings: ["huevo", "queso"] },
+        { num: "", name: { es: "Jamón Serrano", en: "Cured ham" }, price: 4.80, ings: ["huevo", "jamon_serrano"] },
+        { num: "", name: { es: "Jamón York", en: "Ham" }, price: 4.80, ings: ["huevo", "jamon_york"] }
+      ]
+    },
+
+    bocadillosVarios: {
+      name: { es: "🥖 Bocadillos Varios", en: "🥖 Other Rolls" },
+      customBasePrice: 3.50,
+      ingredients: [
+        { id: "serrano", name: { es: "Jamón Serrano", en: "Cured Serrano ham" }, extraPrice: 0.80 },
+        { id: "tomate", name: { es: "Tomate", en: "Tomato" }, extraPrice: 0.60 },
+        { id: "queso", name: { es: "Queso", en: "Cheese" }, extraPrice: 0.60 },
+        { id: "atun", name: { es: "Atún", en: "Tuna" }, extraPrice: 0.80 },
+        { id: "anchoas", name: { es: "Anchoas en Aceite", en: "Anchovies with olive oil" }, extraPrice: 1.50 },
+        { id: "alcachofas", name: { es: "Alcachofas", en: "Artichokes" }, extraPrice: 0.80 },
+        { id: "york", name: { es: "York", en: "Ham" }, extraPrice: 0.60 },
+        { id: "frankfurt", name: { es: "Frankfurt", en: "Sausage" }, extraPrice: 0.80 }
+      ],
+      items: [
+        { num: "", name: { es: "Serrano (con o sin tomate)", en: "Cured Serrano ham (with or without tomato)" }, price: 4.10, ings: ["serrano"] },
+        { num: "", name: { es: "Serrano, Queso", en: "Cured Serrano ham with cheese" }, price: 4.60, ings: ["serrano", "queso"] },
+        { num: "", name: { es: "Queso", en: "Cheese" }, price: 4.50, ings: ["queso"] },
+        { num: "", name: { es: "Atún", en: "Tuna" }, price: 4.50, ings: ["atun"] },
+        { num: "", name: { es: "Anchoas en Aceite", en: "Anchovies with olive oil" }, price: 4.70, ings: ["anchoas"] },
+        { num: "", name: { es: "Anchoas, Alcachofas", en: "Anchovies with artichokes" }, price: 5.20, ings: ["anchoas", "alcachofas"] },
+        { num: "", name: { es: "York", en: "Ham" }, price: 4.10, ings: ["york"] },
+        { num: "", name: { es: "Frankfurt", en: "Sausage" }, price: 4.10, ings: ["frankfurt"] }
+      ]
+    },
+
+    varios: {
+      name: { es: "🍟 Varios (Patatas)", en: "🍟 Chips / Sides" },
+      customBasePrice: 2.00,
+      ingredients: [
+        { id: "patatas", name: { es: "Patatas", en: "Chips" }, extraPrice: 2.00 },
+        { id: "kebab", name: { es: "Carne Kebab", en: "Kebab meat" }, extraPrice: 1.00 },
+        { id: "lomo", name: { es: "Lomo", en: "Pork loin" }, extraPrice: 1.00 },
+        { id: "frankfurt", name: { es: "Frankfurt", en: "Sausages" }, extraPrice: 1.00 },
+        { id: "huevo", name: { es: "Huevo frito", en: "Fried eggs" }, extraPrice: 0.60 },
+        { id: "beicon", name: { es: "Beicon", en: "Bacon" }, extraPrice: 1.00 },
+        { id: "pollo", name: { es: "Pollo", en: "Chicken" }, extraPrice: 1.00 },
+        { id: "hamburguesa", name: { es: "Hamburguesa", en: "Burger" }, extraPrice: 1.00 },
+        { id: "nuggets", name: { es: "Nuggets (4 uds.)", en: "Nuggets (4 pcs)" }, extraPrice: 1.50 }
+      ],
+      items: [
+        { num: "", name: { es: "Patatas", en: "Chips" }, price: 2.00, ings: ["patatas"] },
+        { num: "", name: { es: "Patatas Kebab", en: "Chips with Kebab meat" }, price: 3.00, ings: ["patatas", "kebab"] },
+        { num: "", name: { es: "Patatas Lomo", en: "Chips with pork loin" }, price: 3.00, ings: ["patatas", "lomo"] },
+        { num: "", name: { es: "Patatas Frankfurt", en: "Chips with sausages" }, price: 3.00, ings: ["patatas", "frankfurt"] },
+        { num: "", name: { es: "Patatas Huevo", en: "Chips with fried eggs" }, price: 2.40, ings: ["patatas", "huevo"] },
+        { num: "", name: { es: "Patatas Beicon", en: "Chips with bacon" }, price: 3.00, ings: ["patatas", "beicon"] },
+        { num: "", name: { es: "Patatas Pollo", en: "Chips with chicken" }, price: 3.00, ings: ["patatas", "pollo"] },
+        { num: "", name: { es: "Patatas Hamburguesa", en: "Chips with burger" }, price: 3.00, ings: ["patatas", "hamburguesa"] },
+        { num: "", name: { es: "Patatas Nuggets (4 uds.)", en: "Chips with nuggets" }, price: 3.50, ings: ["patatas", "nuggets"] }
+      ]
+    },
+
+    // ==========================================
+    // CATEGORÍA SIMPLE SIN INGREDIENTES NI SALSAS (EDITA PRECIOS/BEBIDAS AQUÍ)
+    // ==========================================
+    bebidas: {
+      name: { es: "🥤 Bebidas", en: "🥤 Drinks" },
+      simple: true,
+      items: [
+        { num: "", name: { es: "Agua Mineral (50cl)", en: "Mineral Water (50cl)" }, price: 1.20 },
+        { num: "", name: { es: "Coca-Cola (Lata)", en: "Coca-Cola (Can)" }, price: 1.80 },
+        { num: "", name: { es: "Coca-Cola Zero (Lata)", en: "Coca-Cola Zero (Can)" }, price: 1.80 },
+        { num: "", name: { es: "Fanta Naranja (Lata)", en: "Fanta Orange (Can)" }, price: 1.80 },
+        { num: "", name: { es: "Fanta Limón (Lata)", en: "Fanta Lemon (Can)" }, price: 1.80 },
+        { num: "", name: { es: "Aquarius Limón / Naranja", en: "Aquarius Lemon / Orange" }, price: 2.00 },
+        { num: "", name: { es: "Nestea", en: "Nestea Iced Tea" }, price: 2.00 },
+        { num: "", name: { es: "Cerveza Alhambra (Lata)", en: "Alhambra Beer (Can)" }, price: 1.80 },
+        { num: "", name: { es: "Cerveza Sin Alcohol (Lata)", en: "Non-Alcoholic Beer (Can)" }, price: 1.80 }
+      ]
+    }
+  };
+
+  const I18N = {
+    es: {
+      title: "🍔 La cocina de Emilia",
+      menuHeader: "1. Elige tu comida",
+      lblCat: "Categoría:",
+      lblItem: "Opción / Número:",
+      selectCatPlaceholder: "-- Selecciona categoría --",
+      selectItemPlaceholder: "-- Selecciona opción --",
+      customOption: "✨ Personalizado (Crear a tu gusto)",
+      lblBaseIng: "Ingredientes incluidos (desmarca para quitar):",
+      lblExtraIng: "Añadir ingredientes extra:",
+      btnAdd: "+ Añadir a la cesta",
+      cartHeader: "2. Tu cesta",
+      emptyCart: "Tu cesta está vacía.",
+      bagLineTitle: "🛍️ Bolsa para llevar",
+      totalLbl: "TOTAL:",
+      sendHeader: "3. Confirmar pedido",
+      lblName: "Tu nombre (obligatorio):",
+      namePlaceholder: "Ej: Carlos",
+      lblBag: "🛍️ ¿Necesitas bolsa para llevar? (obligatorio):",
+      bagYes: "Sí",
+      bagNo: "No",
+      btnSend: "📲 Enviar pedido por WhatsApp",
+      btnSendEdit: "📲 Enviar MODIFICACIÓN por WhatsApp",
+      btnModify: "🔄 Modificar último pedido",
+      btnCancel: "❌ Cancelar pedido",
+      reqHintMissing: "Completa cesta, nombre y selección de bolsa para activar el envío.",
+      reqHintReady: "Todo listo para enviar tu pedido.",
+      matchMsg: "✅ ¡Coincide con el Nº {num} ({name})! Se aplica su precio de carta.",
+      noIng: "Sin",
+      extraIng: "Extra",
+      noLastOrder: "No hay ningún pedido reciente guardado en este dispositivo.",
+      editBanner: "✏️ Estás modificando el pedido #{id}. Ajusta la cesta y pulsa enviar.",
+      confirmCancel: "¿Seguro que quieres enviar la cancelación del pedido #{id} por WhatsApp? (Solo válido si aún no entró en cocina)",
+      lblSauces: "Salsas (gratis):",
+      saucesTag: "Salsas"
+    },
+    en: {
+      title: "🍔 Emilia's Kitchen",
+      menuHeader: "1. Choose your food",
+      lblCat: "Category:",
+      lblItem: "Option / Number:",
+      selectCatPlaceholder: "-- Select category --",
+      selectItemPlaceholder: "-- Select option --",
+      customOption: "✨ Custom (Build your own)",
+      lblBaseIng: "Included ingredients (uncheck to remove):",
+      lblExtraIng: "Add extra ingredients:",
+      btnAdd: "+ Add to basket",
+      cartHeader: "2. Your basket",
+      emptyCart: "Your basket is empty.",
+      bagLineTitle: "🛍️ Takeaway bag",
+      totalLbl: "TOTAL:",
+      sendHeader: "3. Confirm order",
+      lblName: "Your name (required):",
+      namePlaceholder: "E.g. John",
+      lblBag: "🛍️ Do you need a takeaway bag? (required):",
+      bagYes: "Yes",
+      bagNo: "No",
+      btnSend: "📲 Send order via WhatsApp",
+      btnSendEdit: "📲 Send MODIFIED order via WhatsApp",
+      btnModify: "🔄 Modify last order",
+      btnCancel: "❌ Cancel order",
+      reqHintMissing: "Add items, enter your name, and select bag option to enable sending.",
+      reqHintReady: "Ready to send your order.",
+      matchMsg: "✅ Matches Menu #{num} ({name})! Standard menu price applied.",
+      noIng: "No",
+      extraIng: "Extra",
+      noLastOrder: "No recent order found on this device.",
+      editBanner: "✏️ Editing order #{id}. Update your basket and send.",
+      confirmCancel: "Are you sure you want to cancel order #{id} via WhatsApp? (Only valid if not yet in kitchen)",
+      lblSauces: "Sauces (free):",
+      saucesTag: "Sauces"
+    }
+  };
+
+  let currentLang = "es";
+  let cart = [];
+  let needBag = null;
+  let editingOrderId = null;
+
+  window.onload = () => {
+    initFoodBackground();
+    setLang("es");
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById("btn-es").classList.toggle("active", lang === "es");
+    document.getElementById("btn-en").classList.toggle("active", lang === "en");
+
+    const t = I18N[lang];
+    document.getElementById("ui-title").textContent = t.title;
+    document.getElementById("ui-menu-header").textContent = t.menuHeader;
+    document.getElementById("ui-lbl-cat").textContent = t.lblCat;
+    document.getElementById("ui-lbl-item").textContent = t.lblItem;
+    document.getElementById("ui-lbl-base-ing").textContent = t.lblBaseIng;
+    document.getElementById("ui-lbl-extra-ing").textContent = t.lblExtraIng;
+    document.getElementById("ui-cart-header").textContent = t.cartHeader;
+    document.getElementById("ui-total-lbl").textContent = t.totalLbl;
+    document.getElementById("ui-send-header").textContent = t.sendHeader;
+    document.getElementById("ui-lbl-name").textContent = t.lblName;
+    document.getElementById("cust-name").placeholder = t.namePlaceholder;
+    document.getElementById("ui-lbl-bag").textContent = t.lblBag;
+    document.getElementById("ui-bag-yes").textContent = t.bagYes;
+    document.getElementById("ui-bag-no").textContent = t.bagNo;
+    document.getElementById("ui-btn-modify").textContent = t.btnModify;
+    document.getElementById("ui-btn-cancel").textContent = t.btnCancel;
+    document.getElementById("ui-btn-send").textContent = editingOrderId ? t.btnSendEdit : t.btnSend;
+    document.getElementById("ui-lbl-sauces").textContent = t.lblSauces;
+
+    renderCategories();
+    renderCart();
+    validateForm();
+  }
+
+  function renderCategories() {
+    const catSelect = document.getElementById("cat-select");
+    const prevVal = catSelect.value;
+    catSelect.innerHTML = `<option value="">${I18N[currentLang].selectCatPlaceholder}</option>`;
+
+    for (const [key, cat] of Object.entries(MENU_DATA)) {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = cat.name[currentLang];
+      catSelect.appendChild(opt);
+    }
+
+    if (prevVal && MENU_DATA[prevVal]) {
+      catSelect.value = prevVal;
+      onCategoryChange(true);
+    } else {
+      onCategoryChange(false);
+    }
+  }
+
+  function onCategoryChange(keepItem = false) {
+    const catKey = document.getElementById("cat-select").value;
+    const itemSelect = document.getElementById("item-select");
+    const prevItem = itemSelect.value;
+
+    itemSelect.innerHTML = `<option value="">${I18N[currentLang].selectItemPlaceholder}</option>`;
+    document.getElementById("customizer-box").classList.add("hidden");
+    document.getElementById("match-alert").style.display = "none";
+
+    if (!catKey) {
+      updateAddButtonPrice(0);
+      return;
+    }
+
+    const cat = MENU_DATA[catKey];
+    cat.items.forEach((item, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx;
+      const prefix = item.num ? `#${item.num} - ` : "";
+      opt.textContent = `${prefix}${item.name[currentLang]} (${formatPrice(item.price)})`;
+      itemSelect.appendChild(opt);
+    });
+
+    // Solo añadir opción Personalizado si NO es una categoría simple
+    if (!cat.simple) {
+      const customOpt = document.createElement("option");
+      customOpt.value = "custom";
+      customOpt.textContent = `${I18N[currentLang].customOption} (${formatPrice(cat.customBasePrice)}+)`;
+      itemSelect.appendChild(customOpt);
+    }
+
+    if (keepItem && prevItem !== "") {
+      itemSelect.value = prevItem;
+      onItemChange();
+    } else {
+      updateAddButtonPrice(0);
+    }
+  }
+
+  function onItemChange() {
+    const catKey = document.getElementById("cat-select").value;
+    const itemVal = document.getElementById("item-select").value;
+    const customizer = document.getElementById("customizer-box");
+    const matchAlert = document.getElementById("match-alert");
+
+    matchAlert.style.display = "none";
+
+    if (!catKey || itemVal === "") {
+      customizer.classList.add("hidden");
+      updateAddButtonPrice(0);
+      return;
+    }
+
+    const cat = MENU_DATA[catKey];
+
+    // Si es categoría simple (ej. Bebidas), ocultar personalizador y mostrar precio directo
+    if (cat.simple) {
+      customizer.classList.add("hidden");
+      updateAddButtonPrice(cat.items[itemVal].price);
+      return;
+    }
+
+    customizer.classList.remove("hidden");
+    const isCustom = itemVal === "custom";
+    const baseIngIds = isCustom ? [] : (cat.items[itemVal].ings || []);
+
+    const baseList = document.getElementById("base-ing-list");
+    const extraList = document.getElementById("extra-ing-list");
+    baseList.innerHTML = "";
+    extraList.innerHTML = "";
+
+    document.getElementById("ui-lbl-base-ing").style.display = isCustom ? "none" : "block";
+    baseList.style.display = isCustom ? "none" : "grid";
+
+    cat.ingredients.forEach(ing => {
+      if (!isCustom && baseIngIds.includes(ing.id)) {
+        baseList.innerHTML += `
+          <label class="ing-item">
+            <input type="checkbox" class="base-chk" value="${ing.id}" checked onchange="recalculateSelection()">
+            <span>${ing.name[currentLang]}</span>
+          </label>`;
+      } else {
+        extraList.innerHTML += `
+          <label class="ing-item">
+            <input type="checkbox" class="extra-chk" value="${ing.id}" onchange="recalculateSelection()">
+            <span>${ing.name[currentLang]}</span>
+            <span class="price-tag">+${formatPrice(ing.extraPrice)}</span>
+          </label>`;
+      }
+    });
+
+    const sauceList = document.getElementById("sauce-list");
+    sauceList.innerHTML = "";
+    SAUCES_DATA.forEach(sauce => {
+      sauceList.innerHTML += `
+        <label class="ing-item">
+          <input type="checkbox" class="sauce-chk" value="${sauce.id}">
+          <span>${sauce.name[currentLang]}</span>
+        </label>`;
+    });
+
+    recalculateSelection();
+  }
+
+  function recalculateSelection() {
+    const catKey = document.getElementById("cat-select").value;
+    const itemVal = document.getElementById("item-select").value;
+    if (!catKey || itemVal === "") return null;
+
+    const cat = MENU_DATA[catKey];
+
+    // Si es categoría simple (ej. Bebidas)
+    if (cat.simple) {
+      const simpleItem = cat.items[itemVal];
+      updateAddButtonPrice(simpleItem.price);
+      return {
+        catKey,
+        num: simpleItem.num || "",
+        name: simpleItem.name[currentLang],
+        price: simpleItem.price,
+        removed: [],
+        added: [],
+        sauces: []
+      };
+    }
+
+    const isCustom = itemVal === "custom";
+    const matchAlert = document.getElementById("match-alert");
+
+    const checkedBase = Array.from(document.querySelectorAll(".base-chk:checked")).map(el => el.value);
+    const checkedExtras = Array.from(document.querySelectorAll(".extra-chk:checked")).map(el => el.value);
+    const finalIngs = [...checkedBase, ...checkedExtras].sort();
+
+    const matchedPreset = cat.items.find(preset => {
+      if (!preset.ings) return false;
+      const sortedPreset = [...preset.ings].sort();
+      return sortedPreset.length === finalIngs.length &&
+             sortedPreset.every((val, index) => val === finalIngs[index]);
+    });
+
+    let finalPrice = 0;
+    let displayNum = "";
+    let displayName = "";
+    let removedNames = [];
+    let addedNames = [];
+
+    if (matchedPreset) {
+      finalPrice = matchedPreset.price;
+      displayNum = matchedPreset.num || "";
+      displayName = matchedPreset.name[currentLang];
+
+      if (isCustom && matchedPreset.num) {
+        matchAlert.textContent = I18N[currentLang].matchMsg
+          .replace("{num}", matchedPreset.num)
+          .replace("{name}", matchedPreset.name[currentLang]);
+        matchAlert.style.display = "block";
+      } else {
+        matchAlert.style.display = "none";
+      }
+    } else {
+      matchAlert.style.display = "none";
+      if (isCustom) {
+        displayNum = "CUSTOM";
+        displayName = `${cat.name[currentLang].replace(/^[^\w]+/, '')} (${currentLang === 'es' ? 'Personalizado' : 'Custom'})`;
+        finalPrice = cat.customBasePrice;
+        checkedExtras.forEach(id => {
+          const ingObj = cat.ingredients.find(i => i.id === id);
+          finalPrice += ingObj.extraPrice;
+          addedNames.push(ingObj.name[currentLang]);
+        });
+      } else {
+        const preset = cat.items[itemVal];
+        displayNum = preset.num || "";
+        displayName = preset.name[currentLang];
+        finalPrice = preset.price;
+
+        (preset.ings || []).forEach(id => {
+          if (!checkedBase.includes(id)) {
+            const ingObj = cat.ingredients.find(i => i.id === id);
+            removedNames.push(ingObj.name[currentLang]);
+          }
+        });
+
+        checkedExtras.forEach(id => {
+          const ingObj = cat.ingredients.find(i => i.id === id);
+          finalPrice += ingObj.extraPrice;
+          addedNames.push(ingObj.name[currentLang]);
+        });
+      }
+    }
+
+    updateAddButtonPrice(finalPrice);
+
+    const checkedSauces = Array.from(document.querySelectorAll(".sauce-chk:checked")).map(el => {
+      const sObj = SAUCES_DATA.find(s => s.id === el.value);
+      return sObj.name[currentLang];
+    });
+
+    return {
+      catKey,
+      num: displayNum,
+      name: displayName,
+      price: finalPrice,
+      removed: removedNames,
+      added: addedNames,
+      sauces: checkedSauces
+    };
+  }
+
+  function updateAddButtonPrice(price) {
+    document.getElementById("ui-btn-add").textContent = `${I18N[currentLang].btnAdd} (${formatPrice(price)})`;
+  }
+
+  function addToCart() {
+    const item = recalculateSelection();
+    if (!item) return;
+
+    const signature = JSON.stringify({
+      num: item.num,
+      name: item.name,
+      price: item.price,
+      removed: item.removed,
+      added: item.added,
+      sauces: item.sauces
+    });
+
+    const existing = cart.find(c => c.signature === signature);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({ ...item, signature, qty: 1 });
+    }
+
+    renderCart();
+    validateForm();
+  }
+
+  function changeQty(index, delta) {
+    cart[index].qty += delta;
+    if (cart[index].qty <= 0) {
+      cart.splice(index, 1);
+    }
+    renderCart();
+    validateForm();
+  }
+
+  function removeLine(index) {
+    cart.splice(index, 1);
+    renderCart();
+    validateForm();
+  }
+
+  function onBagChange() {
+    const selected = document.querySelector('input[name="bag-opt"]:checked');
+    needBag = selected ? (selected.value === "yes") : null;
+    renderCart();
+    validateForm();
+  }
+
+  function removeBagFromCart() {
+    needBag = false;
+    const noRadio = document.querySelector('input[name="bag-opt"][value="no"]');
+    if (noRadio) noRadio.checked = true;
+    renderCart();
+    validateForm();
+  }
+
+  function validateForm() {
+    const name = document.getElementById("cust-name").value.trim();
+    const hasItems = cart.length > 0;
+    const bagSelected = needBag !== null;
+    const isValid = hasItems && name.length > 0 && bagSelected;
+
+    const btn = document.getElementById("ui-btn-send");
+    const hint = document.getElementById("ui-req-hint");
+    const t = I18N[currentLang];
+
+    btn.disabled = !isValid;
+    hint.textContent = isValid ? t.reqHintReady : t.reqHintMissing;
+  }
+
+  function renderCart() {
+    const list = document.getElementById("cart-list");
+    const totalEl = document.getElementById("cart-total");
+    const t = I18N[currentLang];
+
+    if (cart.length === 0 && needBag !== true) {
+      list.innerHTML = `<p style="color:var(--muted); font-size:0.9rem;">${t.emptyCart}</p>`;
+      totalEl.textContent = "0,00 €";
+      return;
+    }
+
+    let total = 0;
+    list.innerHTML = "";
+
+    cart.forEach((item, idx) => {
+      const lineTotal = item.price * item.qty;
+      total += lineTotal;
+
+      let details = [];
+      if (item.removed.length) details.push(`❌ ${t.noIng}: ${item.removed.join(", ")}`);
+      if (item.added.length) details.push(`➕ ${t.extraIng}: ${item.added.join(", ")}`);
+      if (item.sauces && item.sauces.length) details.push(`🥫 ${t.saucesTag}: ${item.sauces.join(", ")}`);
+
+      const numPrefix = (item.num && item.num !== "CUSTOM") ? `#${item.num} - ` : "";
+
+      list.innerHTML += `
+        <div class="cart-item">
+          <div>
+            <div class="cart-title">${item.qty}x ${numPrefix}${item.name} (${formatPrice(lineTotal)})</div>
+            ${details.length ? `<div class="cart-sub">${details.join(" | ")}</div>` : ""}
+          </div>
+          <div class="cart-controls">
+            <button class="qty-btn" onclick="changeQty(${idx}, -1)" title="Quitar 1">-</button>
+            <span style="font-weight:bold; min-width:18px; text-align:center;">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${idx}, 1)" title="Añadir 1">+</button>
+            <button class="del-btn" onclick="removeLine(${idx})" title="Eliminar todos">🗑️</button>
+          </div>
+        </div>`;
+    });
+
+    if (needBag === true) {
+      total += PRECIO_BOLSA;
+      list.innerHTML += `
+        <div class="cart-item">
+          <div>
+            <div class="cart-title">1x ${t.bagLineTitle} (${formatPrice(PRECIO_BOLSA)})</div>
+          </div>
+          <div class="cart-controls">
+            <button class="del-btn" onclick="removeBagFromCart()" title="Quitar bolsa">🗑️</button>
+          </div>
+        </div>`;
+    }
+
+    totalEl.textContent = formatPrice(total);
+  }
+
+  function sendOrder() {
+    const name = document.getElementById("cust-name").value.trim();
+    const t = I18N[currentLang];
+
+    if (cart.length === 0 || !name || needBag === null) return;
+
+    const orderId = editingOrderId || Math.floor(100 + Math.random() * 900);
+    const isEdit = Boolean(editingOrderId);
+
+    localStorage.setItem("lastBarOrder", JSON.stringify({
+      id: orderId,
+      name,
+      needBag,
+      cart
+    }));
+
+    let msg = isEdit
+      ? `🔄 *MODIFICACIÓN PEDIDO #${orderId}* (Sustituye al anterior)\n`
+      : `🧾 *NUEVO PEDIDO #${orderId}*\n`;
+
+    msg += `👤 *Cliente:* ${name}\n`;
+    msg += `────────────────────\n`;
+
+    let total = 0;
+    cart.forEach(item => {
+      const sub = item.price * item.qty;
+      total += sub;
+      let numTag = "";
+      if (item.num === "CUSTOM") numTag = `[PERSONALIZADO] `;
+      else if (item.num) numTag = `[Nº ${item.num}] `;
+
+      msg += `▪️ *${item.qty}x* ${numTag}${item.name} (${formatPrice(sub)})\n`;
+      if (item.removed.length) msg += `   └ ❌ Sin: ${item.removed.join(", ")}\n`;
+      if (item.added.length) msg += `   └ ➕ Extra: ${item.added.join(", ")}\n`;
+      if (item.sauces && item.sauces.length) msg += `   └ 🥫 Salsas: ${item.sauces.join(", ")}\n`;
+    });
+
+    if (needBag === true) {
+      total += PRECIO_BOLSA;
+      msg += `▪️ *1x* 🛍️ Bolsa para llevar (${formatPrice(PRECIO_BOLSA)})\n`;
+    } else {
+      msg += `▪️ 🛍️ Sin bolsa\n`;
+    }
+
+    msg += `────────────────────\n`;
+    msg += `💰 *TOTAL: ${formatPrice(total)}*\n`;
+    msg += `⚠️ _Para modificar o cancelar antes de cocina, usa la web._`;
+
+    editingOrderId = null;
+    document.getElementById("edit-mode-banner").style.display = "none";
+    document.getElementById("ui-btn-send").textContent = t.btnSend;
+
+    openWhatsApp(msg);
+  }
+
+  function loadLastOrderForEdit() {
+    const saved = localStorage.getItem("lastBarOrder");
+    const t = I18N[currentLang];
+    if (!saved) return alert(t.noLastOrder);
+
+    const data = JSON.parse(saved);
+    editingOrderId = data.id;
+    cart = data.cart;
+    needBag = typeof data.needBag === "boolean" ? data.needBag : null;
+    document.getElementById("cust-name").value = data.name;
+
+    if (needBag !== null) {
+      const radio = document.querySelector(`input[name="bag-opt"][value="${needBag ? 'yes' : 'no'}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    const banner = document.getElementById("edit-mode-banner");
+    banner.textContent = t.editBanner.replace("{id}", data.id);
+    banner.style.display = "block";
+    document.getElementById("ui-btn-send").textContent = t.btnSendEdit;
+
+    renderCart();
+    validateForm();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelLastOrder() {
+    const saved = localStorage.getItem("lastBarOrder");
+    const t = I18N[currentLang];
+    if (!saved) return alert(t.noLastOrder);
+
+    const data = JSON.parse(saved);
+    if (!confirm(t.confirmCancel.replace("{id}", data.id))) return;
+
+    const msg = `❌ *CANCELACIÓN PEDIDO #${data.id}*\n👤 *Cliente:* ${data.name}\n⚠️ _Por favor, anular pedido si aún no ha entrado en cocina._`;
+    localStorage.removeItem("lastBarOrder");
+    openWhatsApp(msg);
+  }
+
+  function openWhatsApp(text) {
+    const url = `https://api.whatsapp.com/send?phone=${TELEFONO_BAR}&text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  }
+
+  function formatPrice(num) {
+    return num.toFixed(2).replace(".", ",") + " €";
+  }
+
+  function initFoodBackground() {
+    const bg = document.getElementById("food-bg");
+    if (!bg) return;
+    const emojis = ["🍔", "🍟", "🍕", "🥖", "🌯", "🌭", "🥤", "🥓", "🧀"];
+    const total = 25;
+
+    for (let i = 0; i < total; i++) {
+      const span = document.createElement("span");
+      span.textContent = emojis[i % emojis.length];
+      span.style.left = Math.random() * 96 + "%";
+      span.style.fontSize = (1.9 + Math.random() * 1.5) + "rem";
+      span.style.animationDuration = (14 + Math.random() * 14) + "s";
+      span.style.animationDelay = (-Math.random() * 20) + "s";
+      bg.appendChild(span);
+    }
+  }
+</script>
+
+</body>
+</html>
