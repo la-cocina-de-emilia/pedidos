@@ -51,7 +51,7 @@
 
     /* Tarjetas con transparencia */
     .card {
-      background: rgba(255, 255, 255, 0.86);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       border: 1px solid rgba(255, 255, 255, 0.6);
@@ -62,6 +62,26 @@
     }
     .card h2 { margin-top: 0; font-size: 1.05rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
+    /* Banner de horario / turno */
+    .schedule-banner {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .schedule-open {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+    .schedule-closed {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
     label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; margin-top: 12px; }
     select, input[type="text"] {
       width: 100%;
@@ -71,6 +91,7 @@
       font-size: 1rem;
       background: white;
     }
+    select:disabled { background: #f3f4f6; color: #9ca3af; }
 
     /* Ingredientes y Opciones Radio */
     .ing-grid {
@@ -128,7 +149,8 @@
       transition: 0.2s;
     }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+    .btn-primary:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
     .btn-whatsapp { background: var(--whatsapp); color: #064e3b; font-size: 1.05rem; }
     .btn-whatsapp:hover:not(:disabled) { background: var(--whatsapp-dark); }
     .btn-whatsapp:disabled {
@@ -230,6 +252,9 @@
 
 <div class="container">
 
+  <!-- AVISO DE TURNO Y HORARIO ACTIVO -->
+  <div id="schedule-banner" class="schedule-banner"></div>
+
   <!-- BLOQUE 1: SELECTOR DE CARTA -->
   <div class="card">
     <h2 id="ui-menu-header">1. Elige tu comida</h2>
@@ -249,8 +274,10 @@
       <label id="ui-lbl-extra-ing">Añadir ingredientes extra:</label>
       <div id="extra-ing-list" class="ing-grid"></div>
 
-      <label id="ui-lbl-sauces">Salsas (gratis):</label>
-      <div id="sauce-list" class="ing-grid"></div>
+      <div id="sauces-wrapper">
+        <label id="ui-lbl-sauces">Salsas (gratis):</label>
+        <div id="sauce-list" class="ing-grid"></div>
+      </div>
     </div>
 
     <button class="btn btn-primary" id="ui-btn-add" onclick="addToCart()">+ Añadir a la cesta (0,00 €)</button>
@@ -304,20 +331,64 @@
 
 <script>
   // ==========================================
-  // 1. CONFIGURACIÓN DEL BAR
+  // 1. CONFIGURACIÓN DEL BAR Y HORARIOS (EDITA AQUÍ)
   // ==========================================
   const TELEFONO_BAR = "346000000";
   const PRECIO_BOLSA = 0.15;
+
+  // Horarios en formato 24h ("HH:MM"). Modifícalos aquí cuando quieras cambiar el tramo:
+  const SCHEDULES = {
+    mediodia: { start: "09:00", end: "12:30" },
+    cenas:    { start: "20:00", end: "23:00" }
+  };
+
+  // Pon true solo si quieres probar toda la carta fuera de horario; déjalo en false para uso real
+  const MODO_PRUEBAS_SIN_HORARIO = false;
+
   const SAUCES_DATA = [
     { id: "ketchup", name: { es: "Ketchup", en: "Ketchup" } },
     { id: "mayonesa", name: { es: "Mayonesa", en: "Mayonnaise" } }
   ];
 
   // ==========================================
-  // 2. CARTA COMPLETA (Con soporte simple: true para Bebidas)
+  // 2. CARTA COMPLETA CON TURNOS ("mediodia", "cenas" o "ambos")
   // ==========================================
   const MENU_DATA = {
+    // --- TURNO MEDIODÍA (09:00 a 12:30) ---
+    pollos: {
+      shift: "mediodia",
+      name: { es: "🍗 Pollos Asados", en: "🍗 Roast Chickens" },
+      noCustom: true, // No muestra "Personalizado", solo los platos + guarnición extra
+      noSauces: true, // Oculta ketchup/mayonesa en pollos asados
+      ingredients: [
+        { id: "patatas_asadas", name: { es: "Con Patatas Asadas", en: "With Roast Potatoes" }, extraPrice: 2.50 },
+        { id: "pimientos_fritos", name: { es: "Con Pimientos Fritos", en: "With Fried Peppers" }, extraPrice: 2.50 }
+      ],
+      items: [
+        { num: "", name: { es: "Pollo Asado Entero", en: "Whole Roast Chicken" }, price: 11.00, ings: [] },
+        { num: "", name: { es: "Medio Pollo Asado", en: "Half Roast Chicken" }, price: 6.00, ings: [] },
+        { num: "", name: { es: "Ración de Patatas Asadas", en: "Portion of Roast Potatoes" }, price: 3.00, ings: [] },
+        { num: "", name: { es: "Ración de Pimientos Fritos", en: "Portion of Fried Peppers" }, price: 3.00, ings: [] }
+      ]
+    },
+
+    comidasCaseras: {
+      shift: "mediodia",
+      name: { es: "🥘 Comidas Caseras (Mediodía)", en: "🥘 Homemade Meals (Lunch)" },
+      simple: true, // Sin ingredientes ni salsas, selección directa
+      items: [
+        { num: "", name: { es: "Paella / Arroz del día (Ración)", en: "Daily Paella / Rice (Portion)" }, price: 5.50 },
+        { num: "", name: { es: "Lasaña Casera de Carne", en: "Homemade Meat Lasagna" }, price: 6.00 },
+        { num: "", name: { es: "Macarrones Boloñesa", en: "Macaroni Bolognese" }, price: 5.00 },
+        { num: "", name: { es: "Albóndigas en Salsa con Patatas", en: "Meatballs in Sauce with Potatoes" }, price: 6.00 },
+        { num: "", name: { es: "Croquetas Caseras (8 uds.)", en: "Homemade Croquettes (8 pcs)" }, price: 5.50 },
+        { num: "", name: { es: "Ensaladilla Rusa (Ración)", en: "Russian Potato Salad (Portion)" }, price: 4.50 }
+      ]
+    },
+
+    // --- TURNO CENAS (20:00 a 23:00) ---
     hamburguesas: {
+      shift: "cenas",
       name: { es: "🍔 Hamburguesas", en: "🍔 Burgers" },
       customBasePrice: 3.50,
       ingredients: [
@@ -343,6 +414,7 @@
     },
 
     lomos: {
+      shift: "cenas",
       name: { es: "🥖 Lomos", en: "🥖 Pork Loin Rolls" },
       customBasePrice: 4.10,
       ingredients: [
@@ -369,6 +441,7 @@
     },
 
     sandwiches: {
+      shift: "cenas",
       name: { es: "🥪 Sandwiches", en: "🥪 Sandwiches" },
       customBasePrice: 3.20,
       ingredients: [
@@ -395,6 +468,7 @@
     },
 
     beicon: {
+      shift: "cenas",
       name: { es: "🥓 Beicon", en: "🥓 Bacon Rolls" },
       customBasePrice: 4.10,
       ingredients: [
@@ -419,6 +493,7 @@
     },
 
     kebab: {
+      shift: "cenas",
       name: { es: "🥙 Kebab", en: "🥙 Kebab Meat" },
       customBasePrice: 4.70,
       ingredients: [
@@ -449,6 +524,7 @@
     },
 
     ensaladas: {
+      shift: "cenas",
       name: { es: "🥗 Ensaladas", en: "🥗 Salads" },
       customBasePrice: 4.50,
       ingredients: [
@@ -479,6 +555,7 @@
     },
 
     tortillas: {
+      shift: "cenas",
       name: { es: "🍳 Tortillas", en: "🍳 Omelettes" },
       customBasePrice: 3.60,
       ingredients: [
@@ -502,6 +579,7 @@
     },
 
     bocadillosVarios: {
+      shift: "cenas",
       name: { es: "🥖 Bocadillos Varios", en: "🥖 Other Rolls" },
       customBasePrice: 3.50,
       ingredients: [
@@ -527,6 +605,7 @@
     },
 
     varios: {
+      shift: "cenas",
       name: { es: "🍟 Varios (Patatas)", en: "🍟 Chips / Sides" },
       customBasePrice: 2.00,
       ingredients: [
@@ -553,10 +632,9 @@
       ]
     },
 
-    // ==========================================
-    // CATEGORÍA SIMPLE SIN INGREDIENTES NI SALSAS (EDITA PRECIOS/BEBIDAS AQUÍ)
-    // ==========================================
+    // --- DISPONIBLE EN AMBOS TURNOS ---
     bebidas: {
+      shift: "ambos",
       name: { es: "🥤 Bebidas", en: "🥤 Drinks" },
       simple: true,
       items: [
@@ -581,9 +659,10 @@
       lblItem: "Opción / Número:",
       selectCatPlaceholder: "-- Selecciona categoría --",
       selectItemPlaceholder: "-- Selecciona opción --",
+      closedPlaceholder: "-- Fuera de horario de pedidos --",
       customOption: "✨ Personalizado (Crear a tu gusto)",
       lblBaseIng: "Ingredientes incluidos (desmarca para quitar):",
-      lblExtraIng: "Añadir ingredientes extra:",
+      lblExtraIng: "Añadir ingredientes extra / guarnición:",
       btnAdd: "+ Añadir a la cesta",
       cartHeader: "2. Tu cesta",
       emptyCart: "Tu cesta está vacía.",
@@ -608,7 +687,11 @@
       editBanner: "✏️ Estás modificando el pedido #{id}. Ajusta la cesta y pulsa enviar.",
       confirmCancel: "¿Seguro que quieres enviar la cancelación del pedido #{id} por WhatsApp? (Solo válido si aún no entró en cocina)",
       lblSauces: "Salsas (gratis):",
-      saucesTag: "Salsas"
+      saucesTag: "Salsas",
+      shiftLunchOpen: "🍗 Turno de MEDIODÍA activo (Pollos asados y comidas caseras hasta las {end}).",
+      shiftDinnerOpen: "🍔 Turno de CENAS activo (Bocadillos, hamburguesas y kebabs hasta las {end}).",
+      shiftTestMode: "🛠️ MODO PRUEBAS: Toda la carta visible sin restricción horaria.",
+      shiftClosed: "🕒 Ahora mismo los pedidos online están cerrados.<br>• Pollos y comidas caseras: {lStart} a {lEnd}<br>• Bocadillos y cenas: {dStart} a {dEnd}"
     },
     en: {
       title: "🍔 Emilia's Kitchen",
@@ -617,9 +700,10 @@
       lblItem: "Option / Number:",
       selectCatPlaceholder: "-- Select category --",
       selectItemPlaceholder: "-- Select option --",
+      closedPlaceholder: "-- Outside ordering hours --",
       customOption: "✨ Custom (Build your own)",
       lblBaseIng: "Included ingredients (uncheck to remove):",
-      lblExtraIng: "Add extra ingredients:",
+      lblExtraIng: "Add extra ingredients / sides:",
       btnAdd: "+ Add to basket",
       cartHeader: "2. Your basket",
       emptyCart: "Your basket is empty.",
@@ -644,7 +728,11 @@
       editBanner: "✏️ Editing order #{id}. Update your basket and send.",
       confirmCancel: "Are you sure you want to cancel order #{id} via WhatsApp? (Only valid if not yet in kitchen)",
       lblSauces: "Sauces (free):",
-      saucesTag: "Sauces"
+      saucesTag: "Sauces",
+      shiftLunchOpen: "🍗 LUNCH shift open (Roast chickens & homemade meals until {end}).",
+      shiftDinnerOpen: "🍔 DINNER shift open (Rolls, burgers & kebabs until {end}).",
+      shiftTestMode: "🛠️ TEST MODE: Full menu visible without time restrictions.",
+      shiftClosed: "🕒 Online ordering is currently closed.<br>• Roast chickens & lunch: {lStart} to {lEnd}<br>• Rolls & dinner: {dStart} to {dEnd}"
     }
   };
 
@@ -657,6 +745,53 @@
     initFoodBackground();
     setLang("es");
   };
+
+  // Devuelve "mediodia", "cenas", "all" (si está en modo pruebas) o null (cerrado)
+  function getActiveShift() {
+    if (MODO_PRUEBAS_SIN_HORARIO) return "all";
+
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const toMins = (hhmm) => {
+      const [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const lunchStart = toMins(SCHEDULES.mediodia.start);
+    const lunchEnd = toMins(SCHEDULES.mediodia.end);
+    if (currentMins >= lunchStart && currentMins <= lunchEnd) return "mediodia";
+
+    const dinnerStart = toMins(SCHEDULES.cenas.start);
+    const dinnerEnd = toMins(SCHEDULES.cenas.end);
+    if (currentMins >= dinnerStart && currentMins <= dinnerEnd) return "cenas";
+
+    return null;
+  }
+
+  function updateScheduleBanner() {
+    const banner = document.getElementById("schedule-banner");
+    const t = I18N[currentLang];
+    const activeShift = getActiveShift();
+
+    if (activeShift === "all") {
+      banner.className = "schedule-banner schedule-open";
+      banner.innerHTML = t.shiftTestMode;
+    } else if (activeShift === "mediodia") {
+      banner.className = "schedule-banner schedule-open";
+      banner.innerHTML = t.shiftLunchOpen.replace("{end}", SCHEDULES.mediodia.end);
+    } else if (activeShift === "cenas") {
+      banner.className = "schedule-banner schedule-open";
+      banner.innerHTML = t.shiftDinnerOpen.replace("{end}", SCHEDULES.cenas.end);
+    } else {
+      banner.className = "schedule-banner schedule-closed";
+      banner.innerHTML = t.shiftClosed
+        .replace("{lStart}", SCHEDULES.mediodia.start)
+        .replace("{lEnd}", SCHEDULES.mediodia.end)
+        .replace("{dStart}", SCHEDULES.cenas.start)
+        .replace("{dEnd}", SCHEDULES.cenas.end);
+    }
+  }
 
   function setLang(lang) {
     currentLang = lang;
@@ -683,6 +818,7 @@
     document.getElementById("ui-btn-send").textContent = editingOrderId ? t.btnSendEdit : t.btnSend;
     document.getElementById("ui-lbl-sauces").textContent = t.lblSauces;
 
+    updateScheduleBanner();
     renderCategories();
     renderCart();
     validateForm();
@@ -690,17 +826,40 @@
 
   function renderCategories() {
     const catSelect = document.getElementById("cat-select");
+    const itemSelect = document.getElementById("item-select");
+    const addBtn = document.getElementById("ui-btn-add");
     const prevVal = catSelect.value;
-    catSelect.innerHTML = `<option value="">${I18N[currentLang].selectCatPlaceholder}</option>`;
+    const activeShift = getActiveShift();
+    const t = I18N[currentLang];
 
-    for (const [key, cat] of Object.entries(MENU_DATA)) {
-      const opt = document.createElement("option");
-      opt.value = key;
-      opt.textContent = cat.name[currentLang];
-      catSelect.appendChild(opt);
+    if (!activeShift) {
+      catSelect.innerHTML = `<option value="">${t.closedPlaceholder}</option>`;
+      itemSelect.innerHTML = `<option value="">${t.closedPlaceholder}</option>`;
+      catSelect.disabled = true;
+      itemSelect.disabled = true;
+      addBtn.disabled = true;
+      document.getElementById("customizer-box").classList.add("hidden");
+      updateAddButtonPrice(0);
+      return;
     }
 
-    if (prevVal && MENU_DATA[prevVal]) {
+    catSelect.disabled = false;
+    itemSelect.disabled = false;
+    addBtn.disabled = false;
+    catSelect.innerHTML = `<option value="">${t.selectCatPlaceholder}</option>`;
+
+    for (const [key, cat] of Object.entries(MENU_DATA)) {
+      const isAllowed = activeShift === "all" || cat.shift === "ambos" || cat.shift === activeShift;
+      if (isAllowed) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = cat.name[currentLang];
+        catSelect.appendChild(opt);
+      }
+    }
+
+    const stillExists = Array.from(catSelect.options).some(o => o.value === prevVal);
+    if (prevVal && stillExists) {
       catSelect.value = prevVal;
       onCategoryChange(true);
     } else {
@@ -731,8 +890,7 @@
       itemSelect.appendChild(opt);
     });
 
-    // Solo añadir opción Personalizado si NO es una categoría simple
-    if (!cat.simple) {
+    if (!cat.simple && !cat.noCustom) {
       const customOpt = document.createElement("option");
       customOpt.value = "custom";
       customOpt.textContent = `${I18N[currentLang].customOption} (${formatPrice(cat.customBasePrice)}+)`;
@@ -763,7 +921,6 @@
 
     const cat = MENU_DATA[catKey];
 
-    // Si es categoría simple (ej. Bebidas), ocultar personalizador y mostrar precio directo
     if (cat.simple) {
       customizer.classList.add("hidden");
       updateAddButtonPrice(cat.items[itemVal].price);
@@ -779,8 +936,9 @@
     baseList.innerHTML = "";
     extraList.innerHTML = "";
 
-    document.getElementById("ui-lbl-base-ing").style.display = isCustom ? "none" : "block";
-    baseList.style.display = isCustom ? "none" : "grid";
+    const showBase = !isCustom && baseIngIds.length > 0;
+    document.getElementById("ui-lbl-base-ing").style.display = showBase ? "block" : "none";
+    baseList.style.display = showBase ? "grid" : "none";
 
     cat.ingredients.forEach(ing => {
       if (!isCustom && baseIngIds.includes(ing.id)) {
@@ -799,15 +957,22 @@
       }
     });
 
+    const saucesWrapper = document.getElementById("sauces-wrapper");
     const sauceList = document.getElementById("sauce-list");
     sauceList.innerHTML = "";
-    SAUCES_DATA.forEach(sauce => {
-      sauceList.innerHTML += `
-        <label class="ing-item">
-          <input type="checkbox" class="sauce-chk" value="${sauce.id}">
-          <span>${sauce.name[currentLang]}</span>
-        </label>`;
-    });
+
+    if (cat.noSauces) {
+      saucesWrapper.classList.add("hidden");
+    } else {
+      saucesWrapper.classList.remove("hidden");
+      SAUCES_DATA.forEach(sauce => {
+        sauceList.innerHTML += `
+          <label class="ing-item">
+            <input type="checkbox" class="sauce-chk" value="${sauce.id}">
+            <span>${sauce.name[currentLang]}</span>
+          </label>`;
+      });
+    }
 
     recalculateSelection();
   }
@@ -819,7 +984,6 @@
 
     const cat = MENU_DATA[catKey];
 
-    // Si es categoría simple (ej. Bebidas)
     if (cat.simple) {
       const simpleItem = cat.items[itemVal];
       updateAddButtonPrice(simpleItem.price);
@@ -841,12 +1005,12 @@
     const checkedExtras = Array.from(document.querySelectorAll(".extra-chk:checked")).map(el => el.value);
     const finalIngs = [...checkedBase, ...checkedExtras].sort();
 
-    const matchedPreset = cat.items.find(preset => {
+    const matchedPreset = !cat.noCustom ? cat.items.find(preset => {
       if (!preset.ings) return false;
       const sortedPreset = [...preset.ings].sort();
       return sortedPreset.length === finalIngs.length &&
              sortedPreset.every((val, index) => val === finalIngs[index]);
-    });
+    }) : null;
 
     let finalPrice = 0;
     let displayNum = "";
@@ -901,7 +1065,7 @@
 
     updateAddButtonPrice(finalPrice);
 
-    const checkedSauces = Array.from(document.querySelectorAll(".sauce-chk:checked")).map(el => {
+    const checkedSauces = cat.noSauces ? [] : Array.from(document.querySelectorAll(".sauce-chk:checked")).map(el => {
       const sObj = SAUCES_DATA.find(s => s.id === el.value);
       return sObj.name[currentLang];
     });
@@ -922,6 +1086,7 @@
   }
 
   function addToCart() {
+    if (!getActiveShift()) return;
     const item = recalculateSelection();
     if (!item) return;
 
@@ -979,7 +1144,8 @@
     const name = document.getElementById("cust-name").value.trim();
     const hasItems = cart.length > 0;
     const bagSelected = needBag !== null;
-    const isValid = hasItems && name.length > 0 && bagSelected;
+    const isOpen = getActiveShift() !== null;
+    const isValid = isOpen && hasItems && name.length > 0 && bagSelected;
 
     const btn = document.getElementById("ui-btn-send");
     const hint = document.getElementById("ui-req-hint");
@@ -1049,7 +1215,7 @@
     const name = document.getElementById("cust-name").value.trim();
     const t = I18N[currentLang];
 
-    if (cart.length === 0 || !name || needBag === null) return;
+    if (!getActiveShift() || cart.length === 0 || !name || needBag === null) return;
 
     const orderId = editingOrderId || Math.floor(100 + Math.random() * 900);
     const isEdit = Boolean(editingOrderId);
@@ -1151,7 +1317,7 @@
   function initFoodBackground() {
     const bg = document.getElementById("food-bg");
     if (!bg) return;
-    const emojis = ["🍔", "🍟", "🍕", "🥖", "🌯", "🌭", "🥤", "🥓", "🧀"];
+    const emojis = ["🍔", "🍟", "🍕", "🥖", "🌯", "🍗", "🥤", "🥘", "🧀"];
     const total = 25;
 
     for (let i = 0; i < total; i++) {
